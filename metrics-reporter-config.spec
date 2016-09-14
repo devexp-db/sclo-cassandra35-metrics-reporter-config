@@ -1,5 +1,5 @@
 Name:           metrics-reporter-config
-Version:        3.0.2
+Version:        3.0.3
 Release:        1%{?dist}
 Summary:        Manages config for metrics from Coda Hale’s Metrics library
 
@@ -9,7 +9,7 @@ Source0:        https://github.com/addthis/%{name}/archive/v%{version}.tar.gz
 
 # remove optional dependencies references
 # from files ReporterConfig.java SampleTest.java
-Patch0:         removeOptionalDeps.patch
+Patch0:         remove_optional_deps.patch
 
 BuildArch:      noarch
 # build parent
@@ -39,6 +39,8 @@ BuildRequires:  mvn(org.mockito:mockito-all)
 #BuildRequires:  mvn(com.readytalk:metrics-statsd-common)
 #BuildRequires:  mvn(com.readytalk:metrics-statsd)
 #BuildRequires:  mvn(io.github.hengyunabc:zabbix-sender)
+#BuildRequires:  mvn(io.prometheus:simpleclient_pushgateway)
+#BuildRequires:  mvn(io.prometheus:simpleclient_servlet)
 
 %description
 Coda Hale's Metrics package makes it easy to create useful metrics so you
@@ -88,18 +90,29 @@ This package contains the API documentation for %{name}.
 %pom_remove_dep com.readytalk:metrics3-statsd reporter-config3
 %pom_remove_dep io.github.hengyunabc:zabbix-sender reporter-config3
 
-# remove missing dependency (not needed for cassandra)
+# remove missing dependencies (not needed for cassandra)
 %pom_remove_dep com.izettle:dropwizard-metrics-influxdb reporter-config3
+%pom_remove_dep io.prometheus:simpleclient_pushgateway reporter-config3
+%pom_remove_dep io.prometheus:simpleclient_servlet reporter-config3
 
 # remove files using optional dependencies
 rm reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/InfluxDBReporterConfig.java
 rm reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ZabbixReporter.java
 rm reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/StatsDReporterConfig.java
 rm reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ZabbixReporterConfig.java
+rm -r reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/prometheus
+rm reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/PrometheusReporter.java
+rm reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/PrometheusReporterConfig.java
 rm reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/StatsDReporterConfigTest.java
 
 # removeOptionalDeps patch
 %patch0 -p1
+
+# change maven-compiler-plugin source so that it supports diamond operators
+%pom_add_plugin :maven-compiler-plugin . "<configuration>
+<source>7</source>
+<target>1.7</target>
+</configuration>"
 
 %build
 %mvn_build -- -Dproject.build.sourceEncoding=UTF-8
@@ -115,6 +128,9 @@ rm reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/StatsDRep
 %license LICENSE NOTICE
 
 %changelog
+* Wed Sep 14 2016 Tomas Repik <trepik@redhat.com> - 3.0.3-1
+- version update
+
 * Tue Aug 23 2016 Tomas Repik <trepik@redhat.com> - 3.0.2-1
 - version update
 - removed optional depenedencies that are not needed for cassandra

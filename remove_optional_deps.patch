@@ -1,0 +1,219 @@
+diff -ur metrics-reporter-config-3.0.3/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java metrics-reporter-config-3.0.3new/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java
+--- metrics-reporter-config-3.0.3/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java	2016-09-06 23:10:33.000000000 +0200
++++ metrics-reporter-config-3.0.3new/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java	2016-09-14 17:17:12.982113415 +0200
+@@ -44,15 +44,7 @@
+     @Valid
+     private List<GraphiteReporterConfig> graphite;
+     @Valid
+-    private List<InfluxDBReporterConfig> influxdb;
+-    @Valid
+     private List<RiemannReporterConfig> riemann;
+-    @Valid
+-    private List<StatsDReporterConfig> statsd;
+-    @Valid
+-    private List<ZabbixReporterConfig> zabbix;
+-    @Valid
+-    private List<PrometheusReporterConfig> prometheus;
+ 
+     public List<ConsoleReporterConfig> getConsole() {
+         return console;
+@@ -86,14 +78,6 @@
+         this.graphite = graphite;
+     }
+ 
+-    public List<InfluxDBReporterConfig> getInfluxdb() {
+-        return influxdb;
+-    }
+-
+-    public void setInfluxdb(List<InfluxDBReporterConfig> influxdb) {
+-        this.influxdb = influxdb;
+-    }
+-
+     public List<RiemannReporterConfig> getRiemann() {
+         return riemann;
+     }
+@@ -102,30 +86,6 @@
+         this.riemann = riemann;
+     }
+ 
+-    public List<StatsDReporterConfig> getStatsd() {
+-        return statsd;
+-    }
+-
+-    public void setStatsd(List<StatsDReporterConfig> statsd) {
+-        this.statsd = statsd;
+-    }
+-
+-    public List<ZabbixReporterConfig> getZabbix() {
+-        return zabbix;
+-    }
+-
+-    public void setZabbix(List<ZabbixReporterConfig> zabbix) {
+-        this.zabbix = zabbix;
+-    }
+-
+-    public void setPrometheus(List<PrometheusReporterConfig> prometheus) {
+-        this.prometheus = prometheus;
+-    }
+-
+-    public List<PrometheusReporterConfig> getPrometheus() {
+-        return this.prometheus;
+-    }
+-
+     public boolean enableConsole(MetricRegistry registry) {
+         boolean failures = false;
+         if (console == null) {
+@@ -182,37 +142,6 @@
+         return !failures;
+     }
+ 
+-    public boolean enablePrometheus(MetricRegistry registry) {
+-        boolean failures = false;
+-
+-        if (prometheus == null) {
+-            log.debug("Asked to enable prometheus, but it was not configured");
+-            return false;
+-        }
+-
+-        for (PrometheusReporterConfig prometheusConfig : prometheus) {
+-            if (!prometheusConfig.enable(registry)) {
+-                failures = true;
+-            }
+-        }
+-
+-        return !failures;
+-    }
+-
+-    public boolean enableInfluxdb(MetricRegistry registry) {
+-        boolean failures = false;
+-        if (influxdb == null) {
+-            log.debug("Asked to enable influx, but it was not configured");
+-            return false;
+-        }
+-        for (InfluxDBReporterConfig influxConfig : influxdb) {
+-            if (!influxConfig.enable(registry)) {
+-                failures = true;
+-            }
+-        }
+-        return !failures;
+-    }
+-
+     public boolean enableRiemann(MetricRegistry registry) {
+         boolean failures = false;
+         if (riemann == null) {
+@@ -227,34 +156,6 @@
+         return !failures;
+     }
+ 
+-    public boolean enableStatsd(MetricRegistry registry) {
+-        boolean failures = false;
+-        if (statsd == null) {
+-            log.debug("Asked to enable statsd, but it was not configured");
+-            return false;
+-        }
+-        for (StatsDReporterConfig statsdConfig : statsd) {
+-            if (!statsdConfig.enable(registry)) {
+-                failures = true;
+-            }
+-        }
+-        return !failures;
+-    }
+-
+-    public boolean enableZabbix(MetricRegistry registry) {
+-        boolean failures = false;
+-        if (zabbix == null) {
+-            log.debug("Asked to enable zabbix, but it was not configured");
+-            return false;
+-        }
+-        for (ZabbixReporterConfig zabbixConfig : zabbix) {
+-            if (!zabbixConfig.enable(registry)) {
+-                failures = true;
+-            }
+-        }
+-        return !failures;
+-    }
+-
+     public boolean enableAll(MetricRegistry registry) {
+         boolean enabled = false;
+         if (console != null && enableConsole(registry)) {
+@@ -269,21 +170,9 @@
+         if (graphite != null && enableGraphite(registry)) {
+             enabled = true;
+         }
+-        if (influxdb != null && enableInfluxdb(registry)) {
+-            enabled = true;
+-        }
+         if (riemann != null && enableRiemann(registry)) {
+             enabled = true;
+         }
+-        if (statsd != null && enableStatsd(registry)) {
+-            enabled = true;
+-        }
+-        if (zabbix != null && enableZabbix(registry)) {
+-            enabled = true;
+-        }
+-        if (prometheus != null && enablePrometheus(registry)) {
+-            enabled = true;
+-        }
+         if (!enabled) {
+             log.warn("No reporters were succesfully enabled");
+         }
+@@ -304,10 +193,7 @@
+         report(csv);
+         report(ganglia);
+         report(graphite);
+-        report(influxdb);
+         report(riemann);
+-        report(zabbix);
+-        report(prometheus);
+     }
+ 
+     public static ReporterConfig loadFromFileAndValidate(String fileName) throws IOException {
+diff -ur metrics-reporter-config-3.0.3/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java metrics-reporter-config-3.0.3new/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java
+--- metrics-reporter-config-3.0.3/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java	2016-09-06 23:10:33.000000000 +0200
++++ metrics-reporter-config-3.0.3new/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java	2016-09-14 17:15:06.837228801 +0200
+@@ -109,44 +109,6 @@
+     }
+ 
+     @Test
+-    public void sampleInfluxDB() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/influxdb.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Sample InfluxDB");
+-        runLoop(config);
+-    }
+-
+-    @Test
+-    public void sampleStatsD() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/statsd.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Sample StatsD");
+-        assertNotNull(config.getStatsd());
+-        assertEquals(1, config.getStatsd().size());
+-        runLoop(config);
+-    }
+-
+-    @Test
+-    public void sampleStatsDMulti() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/statsd-multi.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("StatsD Multi");
+-        assertNotNull(config.getStatsd());
+-        assertEquals(2, config.getStatsd().size());
+-        runLoop(config);
+-    }
+-
+-    @Test
+-    public void samplePrometheusMulti() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/prometheus.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Sample Prometheus");
+-        assertNotNull(config.getPrometheus());
+-        assertEquals(2, config.getPrometheus().size());
+-        runLoop(config);
+-    }
+-
+-    @Test
+     public void sampleMulti() throws Exception {
+         ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/multi.yaml");
+         System.out.println(yaml.dump(config));

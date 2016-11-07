@@ -1,0 +1,211 @@
+diff -ur metrics-reporter-config-3.0.3/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java metrics-reporter-config-3.0.3new/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java
+--- metrics-reporter-config-3.0.3/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java	2016-11-02 15:47:13.081423911 +0100
++++ metrics-reporter-config-3.0.3new/reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/ReporterConfig.java	2016-11-02 15:49:59.873670696 +0100
+@@ -36,24 +36,10 @@
+     private static final Logger log = LoggerFactory.getLogger(ReporterConfig.class);
+ 
+     @Valid
+-    private List<ConsoleReporterConfig> console;
+-    @Valid
+     private List<CsvReporterConfig> csv;
+     @Valid
+-    private List<GangliaReporterConfig> ganglia;
+-    @Valid
+-    private List<GraphiteReporterConfig> graphite;
+-    @Valid
+     private List<RiemannReporterConfig> riemann;
+ 
+-    public List<ConsoleReporterConfig> getConsole() {
+-        return console;
+-    }
+-
+-    public void setConsole(List<ConsoleReporterConfig> console) {
+-        this.console = console;
+-    }
+-
+     public List<CsvReporterConfig> getCsv() {
+         return csv;
+     }
+@@ -62,22 +48,6 @@
+         this.csv = csv;
+     }
+ 
+-    public List<GangliaReporterConfig> getGanglia() {
+-        return ganglia;
+-    }
+-
+-    public void setGanglia(List<GangliaReporterConfig> ganglia) {
+-        this.ganglia = ganglia;
+-    }
+-
+-    public List<GraphiteReporterConfig> getGraphite() {
+-        return graphite;
+-    }
+-
+-    public void setGraphite(List<GraphiteReporterConfig> graphite) {
+-        this.graphite = graphite;
+-    }
+-
+     public List<RiemannReporterConfig> getRiemann() {
+         return riemann;
+     }
+@@ -86,20 +56,6 @@
+         this.riemann = riemann;
+     }
+ 
+-    public boolean enableConsole(MetricRegistry registry) {
+-        boolean failures = false;
+-        if (console == null) {
+-            log.debug("Asked to enable console, but it was not configured");
+-            return false;
+-        }
+-        for (ConsoleReporterConfig consoleConfig : console) {
+-            if (!consoleConfig.enable(registry)) {
+-                failures = true;
+-            }
+-        }
+-        return !failures;
+-    }
+-
+     public boolean enableCsv(MetricRegistry registry) {
+         boolean failures = false;
+         if (csv == null) {
+@@ -114,34 +70,6 @@
+         return !failures;
+     }
+ 
+-    public boolean enableGanglia(MetricRegistry registry) {
+-        boolean failures = false;
+-        if (ganglia == null) {
+-            log.debug("Asked to enable ganglia, but it was not configured");
+-            return false;
+-        }
+-        for (GangliaReporterConfig gangliaConfig : ganglia) {
+-            if (!gangliaConfig.enable(registry)) {
+-                failures = true;
+-            }
+-        }
+-        return !failures;
+-    }
+-
+-    public boolean enableGraphite(MetricRegistry registry) {
+-        boolean failures = false;
+-        if (graphite == null) {
+-            log.debug("Asked to enable graphite, but it was not configured");
+-            return false;
+-        }
+-        for (GraphiteReporterConfig graphiteConfig : graphite) {
+-            if (!graphiteConfig.enable(registry)) {
+-                failures = true;
+-            }
+-        }
+-        return !failures;
+-    }
+-
+     public boolean enableRiemann(MetricRegistry registry) {
+         boolean failures = false;
+         if (riemann == null) {
+@@ -158,18 +86,9 @@
+ 
+     public boolean enableAll(MetricRegistry registry) {
+         boolean enabled = false;
+-        if (console != null && enableConsole(registry)) {
+-            enabled = true;
+-        }
+         if (csv != null && enableCsv(registry)) {
+             enabled = true;
+         }
+-        if (ganglia != null && enableGanglia(registry)) {
+-            enabled = true;
+-        }
+-        if (graphite != null && enableGraphite(registry)) {
+-            enabled = true;
+-        }
+         if (riemann != null && enableRiemann(registry)) {
+             enabled = true;
+         }
+@@ -189,10 +108,7 @@
+ 
+     @SuppressWarnings("unused")
+     public void report() {
+-        report(console);
+         report(csv);
+-        report(ganglia);
+-        report(graphite);
+         report(riemann);
+     }
+ 
+diff -ur metrics-reporter-config-3.0.3/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java metrics-reporter-config-3.0.3new/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java
+--- metrics-reporter-config-3.0.3/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java	2016-11-02 15:47:13.081423911 +0100
++++ metrics-reporter-config-3.0.3new/reporter-config3/src/test/java/com/addthis/metrics3/reporter/config/sample/SampleTest.java	2016-11-02 15:53:54.412443848 +0100
+@@ -41,7 +41,6 @@
+         MetricRegistry registry = new MetricRegistry();
+         Counter counter = registry.counter("mycounter");
+         Meter meter = registry.meter("foo");
+-        config.enableConsole(registry);
+         for (int i = 0; i < loops; i++) {
+             counter.inc();
+             meter.mark();
+@@ -52,13 +51,6 @@
+     }
+ 
+     @Test
+-    public void sampleConsole() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/console.yaml");
+-        System.out.println(yaml.dump(config));
+-        runLoop(config);
+-    }
+-
+-    @Test
+     public void sampleCSV() throws Exception {
+         ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/csv.yaml");
+         System.out.println(yaml.dump(config));
+@@ -66,48 +58,6 @@
+         runLoop(config);
+     }
+ 
+-    @Test
+-    public void sampleGanglia() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/ganglia.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Sample Ganglia Reporter");
+-        runLoop(config);
+-
+-    }
+-
+-    @Test
+-    public void sampleGangliaGmond() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/ganglia-gmond.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Sample Ganglia Gmond");
+-        runLoop(config);
+-    }
+-
+-
+-    @Test
+-    public void sampleGraphite() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/graphite.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Sample Graphite");
+-        runLoop(config);
+-    }
+-
+-    @Test
+-    public void sampleGraphiteString() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/graphite-string.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Graphite String");
+-        runLoop(config);
+-    }
+-
+-    @Test
+-    public void sampleGraphiteStringDupe() throws Exception {
+-        ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/graphite-string-dupe.yaml");
+-        System.out.println(yaml.dump(config));
+-        log.info("Graphite String Dupe");
+-        runLoop(config);
+-    }
+-
+     @Test
+     public void sampleMulti() throws Exception {
+         ReporterConfig config = ReporterConfig.loadFromFile("src/test/resources/sample/multi.yaml");

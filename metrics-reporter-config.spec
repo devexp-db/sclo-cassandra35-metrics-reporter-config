@@ -3,11 +3,11 @@
 
 Name:           %{?scl_prefix}metrics-reporter-config
 Version:        3.0.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Manages config for metrics from Coda Hale’s Metrics library
 License:        ASL 2.0
-URL:            https://github.com/addthis/%{name}
-Source0:        https://github.com/addthis/%{name}/archive/v%{version}.tar.gz
+URL:            https://github.com/addthis/%{pkg_name}
+Source0:        https://github.com/addthis/%{pkg_name}/archive/v%{version}.tar.gz
 
 # remove optional dependencies references
 # from files ReporterConfig.java SampleTest.java
@@ -70,7 +70,7 @@ This package contains the API documentation for %{name}.
 
 %{?scl:scl enable %{scl_maven} %{scl} - << "EOF"}
 %mvn_alias :reporter-config3 :reporter-config
-%mvn_file :reporter-config3 %{name}/reporter-config
+%mvn_file :reporter-config3 %{pkg_name}/reporter-config
 
 # disable unnecessary module
 %pom_disable_module reporter-config2
@@ -84,11 +84,6 @@ This package contains the API documentation for %{name}.
 
 # missing org.junit
 %pom_add_dep junit:junit::test
-
-%if 0%{?fedora} < 24
-# do not do this in SCL package
-%{!?scl:%pom_change_dep io.dropwizard.metrics: com.codahale.metrics: reporter-config3/pom.xml}
-%endif
 
 # remove optional dependencies
 %pom_remove_dep com.readytalk:metrics-statsd-common reporter-config3
@@ -154,6 +149,9 @@ rm reporter-config3/src/main/java/com/addthis/metrics3/reporter/config/GraphiteR
 %license LICENSE NOTICE
 
 %changelog
+* Wed Apr 19 2017 Tomas Repik <trepik@redhat.com> - 3.0.3-3
+- fix installation of one artifact
+
 * Wed Nov 02 2016 Tomas Repik <trepik@redhat.com> - 3.0.3-2
 - scl conversion
 
